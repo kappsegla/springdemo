@@ -3,6 +3,7 @@ package se.iths.martin;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -29,8 +30,18 @@ public class PersonsController {
         return personsList;
     }
 
+    @RequestMapping(value = "/persons/{id}")
+    public ResponseEntity<Person> onePerson(@PathVariable long id) {
+        var personOptional = personsList.stream().filter(person -> person.getId() == id)
+                .findFirst();
+
+        return personOptional.map(person -> new ResponseEntity<>(person, HttpStatus.OK))
+                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+
+    }
+
     @RequestMapping(value = "/persons", method = POST)
-    public ResponseEntity<?> createPerson(@RequestBody Person person){
+    public ResponseEntity<Person> createPerson(@RequestBody Person person){
 
         person.setId(counter.addAndGet(1));
 
