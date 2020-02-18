@@ -13,10 +13,4 @@ import javax.persistence.Id;
 public class Person {
     @Id @GeneratedValue Long id;
     String name;
-
-    public Person(Long id, String name) {
-        this.id = id;
-        this.name = name;
-    }
-
 }
