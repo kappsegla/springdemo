@@ -3,52 +3,43 @@ package se.iths.martin;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletRequest;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
-import static org.springframework.web.bind.annotation.RequestMethod.GET;
-import static org.springframework.web.bind.annotation.RequestMethod.POST;
-
 @RestController
-@RequestMapping("/api/")
+@RequestMapping("/api/persons")
 public class PersonsController {
 
-    private List<Person> personsList = Collections.synchronizedList(new ArrayList<>());
+    //private List<Person> personsList = Collections.synchronizedList(new ArrayList<>());
+    //A better choice when reading alot and seldom writing, use CopyOnWriteArrayList
+    //private List<Person> personsList = new CopyOnWriteArrayList<>();
 
-    AtomicLong counter = new AtomicLong();
+  //  AtomicLong counter = new AtomicLong();
+    final PersonsRepository repository;
 
-    @RequestMapping(value = "/persons", method = GET)
-    public List<Person> allPersons() {
-        return personsList;
+    public PersonsController(PersonsRepository storage) {
+        this.repository = storage;
     }
 
-    @RequestMapping(value = "/persons/{id}")
+    @GetMapping
+    public List<Person> allPersons() {
+        return repository.findAll();
+    }
+    @GetMapping(value = "/{id}")
     public ResponseEntity<Person> onePerson(@PathVariable long id) {
-        var personOptional = personsList.stream().filter(person -> person.getId() == id)
-                .findFirst();
+        var personOptional = repository.findById(id);
 
         return personOptional.map(person -> new ResponseEntity<>(person, HttpStatus.OK))
                 .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
 
     }
-
-    @RequestMapping(value = "/persons", method = POST)
+    @PostMapping
     public ResponseEntity<Person> createPerson(@RequestBody Person person){
-
-        person.setId(counter.addAndGet(1));
-
-        personsList.add(person);
+        var p = repository.save(person);
         HttpHeaders headers = new HttpHeaders();
-        headers.add("Location", "/api/persons/" + person.getId());
-        return new ResponseEntity<>(person, headers, HttpStatus.CREATED);
+        headers.add("Location", "/api/persons/" + p.getId());
+        return new ResponseEntity<>(p, headers, HttpStatus.CREATED);
     }
-
 }
