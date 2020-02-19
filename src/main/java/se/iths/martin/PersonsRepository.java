@@ -11,7 +11,7 @@ public interface PersonsRepository extends JpaRepository<Person, Long> {
 
 
     //Custom repository methods
-//    List<Person> findByName(String name);
+    Person findByName(String name);
 //    List<Person> findByIdGreaterThan(Long id);
 //    List<Person> findAllByNameIsContaining(String name);
 //
