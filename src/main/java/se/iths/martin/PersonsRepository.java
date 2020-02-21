@@ -9,7 +9,6 @@ import java.util.Optional;
 
 public interface PersonsRepository extends JpaRepository<Person, Long> {
 
-
     //Custom repository methods
     Person findByName(String name);
 //    List<Person> findByIdGreaterThan(Long id);

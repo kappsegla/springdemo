@@ -1,5 +1,6 @@
 package se.iths.martin;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -10,6 +11,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/persons")
+@Slf4j
 public class PersonsController {
 
     //private List<Person> personsList = Collections.synchronizedList(new ArrayList<>());
@@ -47,6 +49,7 @@ public class PersonsController {
     @DeleteMapping("/{id}")
     ResponseEntity<?> deletePerson(@PathVariable Long id) {
         if (repository.existsById(id)) {
+            log.info("Product deleted");
             repository.deleteById(id);
             return new ResponseEntity<>(HttpStatus.OK);
         } else

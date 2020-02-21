@@ -1,36 +1,45 @@
 package se.iths.martin;
 
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.List;
+
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(controllers = PersonsController.class)
+
+//https://stackabuse.com/spring-annotations-testing/
+//This is a form of Unit testing for spring?
+@WebMvcTest(PersonsController.class)
 public class PersonsControllerTest {
-
-    @MockBean
-    PersonsRepository repository;
 
     @Autowired
     MockMvc mockMvc;
+
+    @MockBean
+    PersonsRepository repository;
 
 
     @Test
     void getAllReturnsListOfAllPersons() throws Exception {
         //Arrange
-      // PersonsController controller = new PersonsController(repository);
+        //Create a stub for one of our repository functions
+        when(repository.findAll()).thenReturn(List.of(new Person(1L,"Martin"),new Person(2L,"Kalle")));
+
        //Act
        //List<Person> actual = controller.allPersons();
         mockMvc.perform(
                 get("/api/persons").contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(content().json("[{\"id\"=1,\"name\"=\"Martin\"},{\"id\"=2,\"name\"=\"Kalle\"}]"));
        //Assert
-//       assertEquals(List.of(),actual,"Not empty list returned");
-//       verify(repository, times(1)).findAll();
+       verify(repository, times(1)).findAll();
     }
 }
