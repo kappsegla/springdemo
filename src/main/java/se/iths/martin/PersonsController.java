@@ -1,6 +1,8 @@
 package se.iths.martin;
 
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -20,12 +22,15 @@ public class PersonsController {
     //  AtomicLong counter = new AtomicLong();
     final PersonsRepository repository;
 
+   // Logger log = LoggerFactory.getLogger(PersonsController.class);
+
     public PersonsController(PersonsRepository storage) {
         this.repository = storage;
     }
 
     @GetMapping
     public List<Person> allPersons() {
+        log.debug("All persons called");
         return repository.findAll();
     }
 
@@ -40,7 +45,9 @@ public class PersonsController {
 
     @PostMapping
     public ResponseEntity<Person> createPerson(@RequestBody Person person) {
+        log.info("POST create Person " + person);
         var p = repository.save(person);
+        log.info("Saved to repository " + p);
         HttpHeaders headers = new HttpHeaders();
         headers.add("Location", "/api/persons/" + p.getId());
         return new ResponseEntity<>(p, headers, HttpStatus.CREATED);
@@ -49,7 +56,7 @@ public class PersonsController {
     @DeleteMapping("/{id}")
     ResponseEntity<?> deletePerson(@PathVariable Long id) {
         if (repository.existsById(id)) {
-            log.info("Product deleted");
+            //log.info("Product deleted");
             repository.deleteById(id);
             return new ResponseEntity<>(HttpStatus.OK);
         } else
