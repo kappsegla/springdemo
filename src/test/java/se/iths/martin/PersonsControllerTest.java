@@ -16,6 +16,7 @@ import java.util.Optional;
 
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 
@@ -34,6 +35,11 @@ public class PersonsControllerTest {
     void setUp() {
         when(repository.findAll()).thenReturn(List.of(new Person(1L, "Martin"), new Person(2L, "Kalle")));
         when(repository.findById(1L)).thenReturn(Optional.of(new Person(1L, "Martin")));
+        when(repository.save(any(Person.class))).thenAnswer(invocationOnMock -> {
+            Object[] args = invocationOnMock.getArguments();
+            var p = (Person) args[0];
+            return new Person(1L, p.getName());
+        });
     }
 
     @Test
@@ -49,7 +55,7 @@ public class PersonsControllerTest {
                 .andExpect(content().json("[{\"id\"=1,\"name\"=\"Martin\"},{\"id\"=2,\"name\"=\"Kalle\"}]"));
         //Assert
         //Use Spy functionality in Mock object to verify that findAll was called on repository.
-        verify(repository, times(1)).findAll();
+//        verify(repository, times(1)).findAll();
     }
 
     @Test
@@ -68,4 +74,15 @@ public class PersonsControllerTest {
                 get("/api/persons/3").accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound());
     }
+
+    @Test
+    void addNewPersonWithPostReturnsCreatedPerson() throws Exception {
+        mockMvc.perform(
+                post("/api/persons/")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"id\":0,\"name\":\"Martin\"}"))
+                .andExpect(status().isCreated());
+    }
+
+
 }
