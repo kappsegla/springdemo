@@ -6,6 +6,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.restdocs.AutoConfigureRestDocs;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
@@ -18,11 +19,13 @@ import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 
 
 //https://stackabuse.com/spring-annotations-testing/
 //This is a form of Unit testing for spring?
 @WebMvcTest(PersonsController.class)
+@AutoConfigureRestDocs(outputDir = "target/snippets")
 public class PersonsControllerTest {
 
     @Autowired
@@ -52,7 +55,8 @@ public class PersonsControllerTest {
         mockMvc.perform(
                 get("/api/persons").contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(content().json("[{\"id\"=1,\"name\"=\"Martin\"},{\"id\"=2,\"name\"=\"Kalle\"}]"));
+                .andExpect(content().json("[{\"id\"=1,\"name\"=\"Martin\"},{\"id\"=2,\"name\"=\"Kalle\"}]"))
+                .andDo(document("home"));
         //Assert
         //Use Spy functionality in Mock object to verify that findAll was called on repository.
 //        verify(repository, times(1)).findAll();
@@ -64,7 +68,8 @@ public class PersonsControllerTest {
         mockMvc.perform(
                 get("/api/persons/1").accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(content().json("{\"id\"=1,\"name\"=\"Martin\"}"));
+                .andExpect(content().json("{\"id\"=1,\"name\"=\"Martin\"}"))
+                .andDo(document("home"));
     }
 
     @Test
@@ -72,7 +77,8 @@ public class PersonsControllerTest {
     void getOnePersonWithInValidIdThree() throws Exception {
         mockMvc.perform(
                 get("/api/persons/3").accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isNotFound())
+                .andDo(document("home"));
     }
 
     @Test
@@ -81,7 +87,8 @@ public class PersonsControllerTest {
                 post("/api/persons/")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"id\":0,\"name\":\"Martin\"}"))
-                .andExpect(status().isCreated());
+                .andExpect(status().isCreated())
+                .andDo(document("home"));
     }
 
 
