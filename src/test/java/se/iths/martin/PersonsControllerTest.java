@@ -15,6 +15,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.util.List;
 import java.util.Optional;
 
+
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -33,6 +34,9 @@ public class PersonsControllerTest {
 
     @MockBean
     PersonsRepository repository;
+
+    @MockBean
+    PersonsModelAssembler assembler;
 
     @BeforeEach
     void setUp() {
@@ -69,6 +73,8 @@ public class PersonsControllerTest {
                 get("/api/persons/1").accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().json("{\"id\"=1,\"name\"=\"Martin\"}"))
+//                .andExpect(jsonPath("content[0].links[2].rel", is("self")))
+//                .andExpect(jsonPath("content[0].links[2].href", is(BASE_PATH + "/" + ID)));
                 .andDo(document("home"));
     }
 

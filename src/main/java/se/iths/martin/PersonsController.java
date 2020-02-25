@@ -41,21 +41,15 @@ public class PersonsController {
     @GetMapping
     public CollectionModel<EntityModel<Person>> all() {
         log.debug("All persons called");
-
-        var collection = repository.findAll().stream()
-                .map(assembler::toModel)
-                .collect(Collectors.toList());
-
-        return new CollectionModel<>(collection,
-                linkTo(methodOn(PersonsController.class).all()).withSelfRel());
+        return assembler.toCollectionModel(repository.findAll());
     }
 
     @GetMapping(value = "/{id}")
     public ResponseEntity<EntityModel<Person>> one(@PathVariable long id) {
-        var personOptional = repository.findById(id);
-
-        return personOptional.map(person -> new ResponseEntity<>(assembler.toModel(person), HttpStatus.OK))
-                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+        return repository.findById(id)
+                .map(assembler::toModel)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping
