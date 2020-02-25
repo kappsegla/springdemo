@@ -4,12 +4,17 @@ import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.RepresentationModel;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @RestController
 @RequestMapping("/api/persons")
@@ -22,7 +27,7 @@ public class PersonsController {
     //  AtomicLong counter = new AtomicLong();
     final PersonsRepository repository;
 
-   // Logger log = LoggerFactory.getLogger(PersonsController.class);
+    // Logger log = LoggerFactory.getLogger(PersonsController.class);
 
     public PersonsController(PersonsRepository storage) {
         this.repository = storage;
@@ -38,11 +43,16 @@ public class PersonsController {
     }
 
     @GetMapping(value = "/{id}")
-    public ResponseEntity<Person> onePerson(@PathVariable long id) {
+    public ResponseEntity<EntityModel<Person>> onePerson(@PathVariable long id) {
         var personOptional = repository.findById(id);
 
-        return personOptional.map(person -> new ResponseEntity<>(person, HttpStatus.OK))
-                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+        EntityModel<Person> entityModel = new EntityModel<Person>(personOptional.get(),
+                linkTo(methodOn(PersonsController.class).onePerson(personOptional.get().getId())).withSelfRel());
+
+        return new ResponseEntity<>(entityModel, HttpStatus.OK);
+
+//        return personOptional.map(person -> new ResponseEntity<>(person, HttpStatus.OK))
+//                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
 
     }
 
@@ -84,7 +94,7 @@ public class PersonsController {
     ResponseEntity<Person> modifyPerson(@RequestBody Person newPerson, @PathVariable Long id) {
         return repository.findById(id)
                 .map(person -> {
-                    if( newPerson.getName() != null)
+                    if (newPerson.getName() != null)
                         person.setName(newPerson.getName());
 
                     repository.save(person);

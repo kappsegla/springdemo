@@ -30,7 +30,6 @@ import static com.google.common.collect.Lists.newArrayList;
 import static springfox.documentation.schema.AlternateTypeRules.newRule;
 
 @SpringBootApplication
-@EnableSwagger2
 public class Application {
 
     public static void main(String[] args) {
