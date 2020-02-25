@@ -77,8 +77,7 @@ public class PersonsControllerTest {
     void getOnePersonWithInValidIdThree() throws Exception {
         mockMvc.perform(
                 get("/api/persons/3").accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNotFound())
-                .andDo(document("home"));
+                .andExpect(status().isNotFound());
     }
 
     @Test
@@ -87,8 +86,7 @@ public class PersonsControllerTest {
                 post("/api/persons/")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"id\":0,\"name\":\"Martin\"}"))
-                .andExpect(status().isCreated())
-                .andDo(document("home"));
+                .andExpect(status().isCreated());
     }
 
 

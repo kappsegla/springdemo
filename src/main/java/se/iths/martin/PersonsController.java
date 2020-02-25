@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URI;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -28,37 +29,32 @@ public class PersonsController {
     //private List<Person> personsList = new CopyOnWriteArrayList<>();
     //  AtomicLong counter = new AtomicLong();
     final PersonsRepository repository;
+    private final PersonsModelAssembler assembler;
 
     // Logger log = LoggerFactory.getLogger(PersonsController.class);
 
-    public PersonsController(PersonsRepository storage) {
+    public PersonsController(PersonsRepository storage, PersonsModelAssembler personsModelAssembler) {
         this.repository = storage;
+        this.assembler = personsModelAssembler;
     }
 
-//    @Autowired
-//    Person person1;
-
     @GetMapping
-    public CollectionModel<EntityModel<Person>> allPersons() {
+    public CollectionModel<EntityModel<Person>> all() {
         log.debug("All persons called");
 
         var collection = repository.findAll().stream()
-                .map(person -> new EntityModel<>(person,
-                        linkTo(methodOn(PersonsController.class).onePerson(person.getId())).withSelfRel(),
-                        linkTo(methodOn(PersonsController.class).allPersons()).withRel("persons")))
+                .map(assembler::toModel)
                 .collect(Collectors.toList());
 
         return new CollectionModel<>(collection,
-                linkTo(methodOn(PersonsController.class).allPersons()).withSelfRel());
+                linkTo(methodOn(PersonsController.class).all()).withSelfRel());
     }
 
     @GetMapping(value = "/{id}")
-    public ResponseEntity<EntityModel<Person>> onePerson(@PathVariable long id) {
+    public ResponseEntity<EntityModel<Person>> one(@PathVariable long id) {
         var personOptional = repository.findById(id);
 
-                return personOptional.map(person -> new ResponseEntity<>(new EntityModel<>(person,
-                        linkTo(methodOn(PersonsController.class).onePerson(person.getId())).withSelfRel(),
-                        linkTo(methodOn(PersonsController.class).allPersons()).withRel("persons")), HttpStatus.OK))
+        return personOptional.map(person -> new ResponseEntity<>(assembler.toModel(person), HttpStatus.OK))
                 .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
@@ -68,7 +64,8 @@ public class PersonsController {
         var p = repository.save(person);
         log.info("Saved to repository " + p);
         HttpHeaders headers = new HttpHeaders();
-        headers.add("Location", "/api/persons/" + p.getId());
+        headers.setLocation(linkTo(PersonsController.class).slash(p.getId()).toUri());
+        //headers.add("Location", "/api/persons/" + p.getId());
         return new ResponseEntity<>(p, headers, HttpStatus.CREATED);
     }
 
@@ -89,7 +86,7 @@ public class PersonsController {
                     person.setName(newPerson.getName());
                     repository.save(person);
                     HttpHeaders headers = new HttpHeaders();
-                    headers.add("Location", "/api/persons/" + person.getId());
+                    headers.setLocation(linkTo(PersonsController.class).slash(person.getId()).toUri());
                     return new ResponseEntity<>(person, headers, HttpStatus.OK);
                 })
                 .orElseGet(() ->
@@ -105,7 +102,7 @@ public class PersonsController {
 
                     repository.save(person);
                     HttpHeaders headers = new HttpHeaders();
-                    headers.add("Location", "/api/persons/" + person.getId());
+                    headers.setLocation(linkTo(PersonsController.class).slash(person.getId()).toUri());
                     return new ResponseEntity<>(person, headers, HttpStatus.OK);
                 })
                 .orElseGet(() ->
