@@ -28,7 +28,7 @@ import static org.hamcrest.CoreMatchers.*;
 
 //This is a form of Unit testing for spring?
 @WebMvcTest(PersonsController.class)
-@Import({ PersonsModelAssembler.class })
+@Import({PersonsModelAssembler.class})
 //@AutoConfigureRestDocs(outputDir = "target/snippets")
 public class PersonsControllerTest {
 
@@ -52,29 +52,22 @@ public class PersonsControllerTest {
 
     @Test
     void getAllReturnsListOfAllPersons() throws Exception {
-        //Arrange
-        //Create a stub for one of our repository functions
-        //       when(repository.findAll()).thenReturn(List.of(new Person(1L,"Martin"),new Person(2L,"Kalle")));
-
-        //Act
         mockMvc.perform(
-                get("/api/persons").contentType(MediaType.APPLICATION_JSON))
+                get("/api/persons").contentType("application/hal+json"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("content[0].name", is("Martin")));
-      //          .andExpect(content().json("[{\"id\"=1,\"name\"=\"Martin\"},{\"id\"=2,\"name\"=\"Kalle\"}]"));
-        //Assert
-        //Use Spy functionality in Mock object to verify that findAll was called on repository.
-//        verify(repository, times(1)).findAll();
+                .andExpect(jsonPath("_embedded.personList[0]._links.self.href", is("http://localhost/api/persons/1")))
+                .andExpect(jsonPath("_embedded.personList[0].name", is("Martin")));
+    //Build json paths with: https://jsonpath.com/
     }
 
     @Test
     @DisplayName("Calls Get method with url /api/persons/1")
     void getOnePersonWithValidIdOne() throws Exception {
         mockMvc.perform(
-                get("/api/persons/1").accept(MediaType.APPLICATION_JSON))
+                get("/api/persons/1").accept("application/hal+json"))
                 .andExpect(status().isOk())
                 //.andExpect(jsonPath("content[0].links[2].rel", is("self")))
-                .andExpect(jsonPath("content[0].links[2].href", is("http://localhost/api/persons/1")));
+                .andExpect(jsonPath("_links.self.href", is("http://localhost/api/persons/1")));
     }
 
     @Test
