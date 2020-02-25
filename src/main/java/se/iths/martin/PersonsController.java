@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.RepresentationModel;
 import org.springframework.http.HttpHeaders;
@@ -12,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
@@ -37,23 +39,27 @@ public class PersonsController {
 //    Person person1;
 
     @GetMapping
-    public List<Person> allPersons() {
+    public CollectionModel<EntityModel<Person>> allPersons() {
         log.debug("All persons called");
-        return repository.findAll();
+
+        var collection = repository.findAll().stream()
+                .map(person -> new EntityModel<>(person,
+                        linkTo(methodOn(PersonsController.class).onePerson(person.getId())).withSelfRel(),
+                        linkTo(methodOn(PersonsController.class).allPersons()).withRel("persons")))
+                .collect(Collectors.toList());
+
+        return new CollectionModel<>(collection,
+                linkTo(methodOn(PersonsController.class).allPersons()).withSelfRel());
     }
 
     @GetMapping(value = "/{id}")
     public ResponseEntity<EntityModel<Person>> onePerson(@PathVariable long id) {
         var personOptional = repository.findById(id);
 
-        EntityModel<Person> entityModel = new EntityModel<Person>(personOptional.get(),
-                linkTo(methodOn(PersonsController.class).onePerson(personOptional.get().getId())).withSelfRel());
-
-        return new ResponseEntity<>(entityModel, HttpStatus.OK);
-
-//        return personOptional.map(person -> new ResponseEntity<>(person, HttpStatus.OK))
-//                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
-
+                return personOptional.map(person -> new ResponseEntity<>(new EntityModel<>(person,
+                        linkTo(methodOn(PersonsController.class).onePerson(person.getId())).withSelfRel(),
+                        linkTo(methodOn(PersonsController.class).allPersons()).withRel("persons")), HttpStatus.OK))
+                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
     @PostMapping
