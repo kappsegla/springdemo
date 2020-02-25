@@ -28,6 +28,9 @@ public class PersonsController {
         this.repository = storage;
     }
 
+//    @Autowired
+//    Person person1;
+
     @GetMapping
     public List<Person> allPersons() {
         log.debug("All persons called");
