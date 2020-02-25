@@ -93,7 +93,7 @@
                             <backend>html</backend>
                             <doctype>book</doctype>
                             <attributes>
-                                <snippet>target/snippets</snippet>
+                                <snippet>../../../target/snippets</snippet>
                             </attributes>
                         </configuration>
                     </execution>
