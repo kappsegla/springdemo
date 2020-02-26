@@ -1,6 +1,11 @@
 package se.iths.martin;
 
+import com.netflix.appinfo.InstanceInfo;
+import com.netflix.discovery.EurekaClient;
+import com.netflix.discovery.shared.Application;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
@@ -19,11 +24,39 @@ class HelloController {
     RestTemplate restTemplate;
     HttpClient client;
 
-    @RequestMapping("/hello")
-    public Greeting sayHello(){
-        return new Greeting(1,"Hello");
+    @Qualifier("eurekaClient")
+    @Autowired
+    private EurekaClient eurekaClient;
+
+    @GetMapping("/randomperson")
+    public Greeting callPersons(){
+        return restTemplate.getForObject("http://Persons-Service/hello",Greeting.class);
     }
 
+
+    @GetMapping("/clients")
+    public List<InstanceInfo> doRequest() {
+        Application application
+                = eurekaClient.getApplication("Persons-Service");
+        return application.getInstances();
+
+//        InstanceInfo instanceInfo = application.getInstances().get(0);
+//        String hostname = instanceInfo.getHostName();
+//        int port = instanceInfo.getPort();
+//        // ...
+    }
+
+
+    @RequestMapping("/hello")
+    public Greeting sayHello(){
+        return new Greeting(1,"Hello från Martins service!");
+    }
+
+    // This method should only be accessed by users with role of 'admin'
+    @GetMapping("/admin")
+    public String homeAdmin() {
+        return "This is the admin area";
+    }
 
     @RequestMapping("/remotecall")
     public String remote() throws IOException, InterruptedException {
